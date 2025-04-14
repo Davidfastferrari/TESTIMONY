@@ -125,7 +125,7 @@ pub fn benchmark_function(_: &mut Criterion) {
 
     // 3. Retrieving cached pools data
     let task = async {
-        let factory_addresses = vec!["0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac"];
+        let factory_addresses = vec!["0xc35DADB65012eC5796536bD9864eD8773aBc74C4"];
         let factory_blocks = vec![10794229u64];
 
         let s = Instant::now();
@@ -143,12 +143,12 @@ pub fn benchmark_function(_: &mut Criterion) {
 
     // 4. Generate triangular arbitrage paths
     let task = async {
-        let factory_addresses = vec!["0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac"];
+        let factory_addresses = vec!["0xc35DADB65012eC5796536bD9864eD8773aBc74C4"];
         let factory_blocks = vec![10794229u64];
         let pools = load_all_pools_from_v2(env.wss_url.clone(), factory_addresses, factory_blocks)
             .await
             .unwrap();
-        let usdc_address = H160::from_str("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48").unwrap();
+        let usdc_address = H160::from_str("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913").unwrap();
 
         let s = Instant::now();
         let paths = generate_triangular_paths(&pools, usdc_address);
@@ -166,7 +166,7 @@ pub fn benchmark_function(_: &mut Criterion) {
 
     // Single multicall
     let task = async {
-        let factory_addresses = vec!["0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac"];
+        let factory_addresses = vec!["0xc35DADB65012eC5796536bD9864eD8773aBc74C4"];
         let factory_blocks = vec![10794229u64];
         let pools = load_all_pools_from_v2(env.wss_url.clone(), factory_addresses, factory_blocks)
             .await
@@ -187,7 +187,7 @@ pub fn benchmark_function(_: &mut Criterion) {
 
     // Batch multicall (thousands of requests asynchronously)
     let task = async {
-        let factory_addresses = vec!["0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac"];
+        let factory_addresses = vec!["0xc35DADB65012eC5796536bD9864eD8773aBc74C4"];
         let factory_blocks = vec![10794229u64];
         let pools = load_all_pools_from_v2(env.wss_url.clone(), factory_addresses, factory_blocks)
             .await
@@ -214,68 +214,68 @@ pub fn benchmark_function(_: &mut Criterion) {
        Most people running MEV bots using Rust will use ethers-rs Provider<Ws> to stream
        real-time data. And that is what I'm testing, without having to look under the hood.
     */
-    // let task = async {
-    //     let ws = Ws::connect(env.wss_url.clone()).await.unwrap();
-    //     let provider = Arc::new(Provider::new(ws));
+    let task = async {
+        let ws = Ws::connect(env.wss_url.clone()).await.unwrap();
+        let provider = Arc::new(Provider::new(ws));
 
-    //     let (event_sender, _): (Sender<Event>, _) = broadcast::channel(512);
+        let (event_sender, _): (Sender<Event>, _) = broadcast::channel(512);
 
-    //     let mut set = JoinSet::new();
+        let mut set = JoinSet::new();
 
-    //     // try running the stream for n seconds
-    //     set.spawn(tokio::time::timeout(
-    //         std::time::Duration::from_secs(180),
-    //         stream_pending_transactions(provider.clone(), event_sender.clone()),
-    //     ));
+        // try running the stream for n seconds
+        set.spawn(tokio::time::timeout(
+            std::time::Duration::from_secs(180),
+            stream_pending_transactions(provider.clone(), event_sender.clone()),
+        ));
 
-    //     set.spawn(tokio::time::timeout(
-    //         std::time::Duration::from_secs(180),
-    //         logging_event_handler(provider.clone(), event_sender.clone()),
-    //     ));
+        set.spawn(tokio::time::timeout(
+            std::time::Duration::from_secs(180),
+            logging_event_handler(provider.clone(), event_sender.clone()),
+        ));
 
-    //     println!("6. Logging receive time for pending transaction streams. Wait 180 seconds...");
-    //     while let Some(res) = set.join_next().await {
-    //         println!("Closed: {:?}", res);
-    //     }
-    // };
-    // rt.block_on(task);
+        println!("6. Logging receive time for pending transaction streams. Wait 180 seconds...");
+        while let Some(res) = set.join_next().await {
+            println!("Closed: {:?}", res);
+        }
+    };
+    rt.block_on(task);
 
-    // 7. Retrieving logs from a newly created block
-    // let task = async {
-    //     let ws = Ws::connect(env.wss_url.clone()).await.unwrap();
-    //     let provider = Arc::new(Provider::new(ws));
+    7. Retrieving logs from a newly created block
+    let task = async {
+        let ws = Ws::connect(env.wss_url.clone()).await.unwrap();
+        let provider = Arc::new(Provider::new(ws));
 
-    //     let (event_sender, _): (Sender<Event>, _) = broadcast::channel(512);
+        let (event_sender, _): (Sender<Event>, _) = broadcast::channel(512);
 
-    //     let mut set = JoinSet::new();
+        let mut set = JoinSet::new();
 
-    //     // try running the stream for n seconds
-    //     set.spawn(tokio::time::timeout(
-    //         std::time::Duration::from_secs(60 * 5),
-    //         stream_new_blocks(provider.clone(), event_sender.clone()),
-    //     ));
+        // try running the stream for n seconds
+        set.spawn(tokio::time::timeout(
+            std::time::Duration::from_secs(60 * 5),
+            stream_new_blocks(provider.clone(), event_sender.clone()),
+        ));
 
-    //     set.spawn(tokio::time::timeout(
-    //         std::time::Duration::from_secs(60 * 5),
-    //         touched_pools_event_handler(provider.clone(), event_sender.clone()),
-    //     ));
+        set.spawn(tokio::time::timeout(
+            std::time::Duration::from_secs(60 * 5),
+            touched_pools_event_handler(provider.clone(), event_sender.clone()),
+        ));
 
-    //     // test for at least 5 minutes
-    //     println!("7. Starting touched pools with new blocks streams. Wait 300 seconds...");
-    //     while let Some(res) = set.join_next().await {
-    //         println!("Closed: {:?}", res);
-    //     }
-    // };
-    // rt.block_on(task);
+        // test for at least 5 minutes
+        println!("7. Starting touched pools with new blocks streams. Wait 300 seconds...");
+        while let Some(res) = set.join_next().await {
+            println!("Closed: {:?}", res);
+        }
+    };
+    rt.block_on(task);
 
     // 8. 3-hop path simulation
     let task = async {
-        let factory_addresses = vec!["0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac"];
+        let factory_addresses = vec!["0xc35DADB65012eC5796536bD9864eD8773aBc74C4"];
         let factory_blocks = vec![10794229u64];
         let pools = load_all_pools_from_v2(env.wss_url.clone(), factory_addresses, factory_blocks)
             .await
             .unwrap();
-        let usdc_address = H160::from_str("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48").unwrap();
+        let usdc_address = H160::from_str("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913").unwrap();
 
         let paths = generate_triangular_paths(&pools, usdc_address);
         let reserves = batch_get_uniswap_v2_reserves(env.https_url.clone(), pools).await;
@@ -300,12 +300,12 @@ pub fn benchmark_function(_: &mut Criterion) {
 
     // 9. Creating flashbots bundles
     let task = async {
-        let factory_addresses = vec!["0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac"];
+        let factory_addresses = vec!["0xc35DADB65012eC5796536bD9864eD8773aBc74C4"];
         let factory_blocks = vec![10794229u64];
         let pools = load_all_pools_from_v2(env.wss_url.clone(), factory_addresses, factory_blocks)
             .await
             .unwrap();
-        let usdc_address = H160::from_str("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48").unwrap();
+        let usdc_address = H160::from_str("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913").unwrap();
         let usdc_decimals = 6;
 
         let paths = generate_triangular_paths(&pools, usdc_address);
@@ -317,7 +317,7 @@ pub fn benchmark_function(_: &mut Criterion) {
         let block_number = bundler.provider.get_block_number().await.unwrap();
 
         let s = Instant::now();
-        let router_address = "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F";
+        let router_address = "0x80C7DD17B01855a6D2347444a0FCC36136a314de";
         let routers = vec![
             H160::from_str(router_address).unwrap(),
             H160::from_str(router_address).unwrap(),
